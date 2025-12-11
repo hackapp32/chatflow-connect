@@ -1,7 +1,9 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import ChatHeader from "./ChatHeader";
-import ChatMessage, { Message, MessageAttachment } from "./ChatMessage";
+import ChatMessage, { Message } from "./ChatMessage";
 import ChatInput, { Attachment } from "./ChatInput";
+import VoiceCallModal from "./VoiceCallModal";
+import VideoCallModal from "./VideoCallModal";
 import { Conversation } from "./ChatSidebar";
 
 interface ChatAreaProps {
@@ -12,6 +14,8 @@ interface ChatAreaProps {
 
 const ChatArea = ({ conversation, messages, onSendMessage }: ChatAreaProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
+  const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,6 +31,8 @@ const ChatArea = ({ conversation, messages, onSendMessage }: ChatAreaProps) => {
         name={conversation.name}
         avatar={conversation.avatar}
         online={conversation.online}
+        onVoiceCall={() => setIsVoiceCallOpen(true)}
+        onVideoCall={() => setIsVideoCallOpen(true)}
       />
 
       {/* Messages Area */}
@@ -46,6 +52,21 @@ const ChatArea = ({ conversation, messages, onSendMessage }: ChatAreaProps) => {
       </div>
 
       <ChatInput onSend={onSendMessage} />
+
+      {/* Call Modals */}
+      <VoiceCallModal
+        isOpen={isVoiceCallOpen}
+        onClose={() => setIsVoiceCallOpen(false)}
+        contactName={conversation.name}
+        contactAvatar={conversation.avatar}
+      />
+
+      <VideoCallModal
+        isOpen={isVideoCallOpen}
+        onClose={() => setIsVideoCallOpen(false)}
+        contactName={conversation.name}
+        contactAvatar={conversation.avatar}
+      />
     </div>
   );
 };

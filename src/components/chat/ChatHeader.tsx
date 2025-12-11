@@ -4,9 +4,11 @@ interface ChatHeaderProps {
   name: string;
   avatar?: string;
   online: boolean;
+  onVoiceCall: () => void;
+  onVideoCall: () => void;
 }
 
-const ChatHeader = ({ name, avatar, online }: ChatHeaderProps) => {
+const ChatHeader = ({ name, avatar, online, onVoiceCall, onVideoCall }: ChatHeaderProps) => {
   return (
     <header className="px-6 py-4 border-b border-border bg-card/50 flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -39,10 +41,16 @@ const ChatHeader = ({ name, avatar, online }: ChatHeaderProps) => {
 
       {/* Actions */}
       <div className="flex items-center gap-1">
-        <button className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+        <button 
+          onClick={onVoiceCall}
+          className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+        >
           <Phone className="w-5 h-5" />
         </button>
-        <button className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+        <button 
+          onClick={onVideoCall}
+          className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+        >
           <Video className="w-5 h-5" />
         </button>
         <button className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
