@@ -1,13 +1,13 @@
 import { useRef, useEffect } from "react";
 import ChatHeader from "./ChatHeader";
-import ChatMessage, { Message } from "./ChatMessage";
-import ChatInput from "./ChatInput";
+import ChatMessage, { Message, MessageAttachment } from "./ChatMessage";
+import ChatInput, { Attachment } from "./ChatInput";
 import { Conversation } from "./ChatSidebar";
 
 interface ChatAreaProps {
   conversation: Conversation;
   messages: Message[];
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, attachments: Attachment[]) => void;
 }
 
 const ChatArea = ({ conversation, messages, onSendMessage }: ChatAreaProps) => {
