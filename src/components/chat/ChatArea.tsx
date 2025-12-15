@@ -4,6 +4,7 @@ import ChatMessage, { Message } from "./ChatMessage";
 import ChatInput, { Attachment } from "./ChatInput";
 import VoiceCallModal from "./VoiceCallModal";
 import VideoCallModal from "./VideoCallModal";
+import IncomingCallNotification from "./IncomingCallNotification";
 import { Conversation } from "./ChatSidebar";
 
 interface ChatAreaProps {
@@ -16,6 +17,11 @@ const ChatArea = ({ conversation, messages, onSendMessage }: ChatAreaProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
+  const [incomingCall, setIncomingCall] = useState<{
+    type: "voice" | "video";
+    callerName: string;
+    callerAvatar?: string;
+  } | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -24,6 +30,32 @@ const ChatArea = ({ conversation, messages, onSendMessage }: ChatAreaProps) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Simulate incoming call after 5 seconds for demo
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIncomingCall({
+        type: Math.random() > 0.5 ? "video" : "voice",
+        callerName: conversation.name,
+        callerAvatar: conversation.avatar,
+      });
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [conversation.id]);
+
+  const handleAcceptCall = () => {
+    if (incomingCall?.type === "video") {
+      setIsVideoCallOpen(true);
+    } else {
+      setIsVoiceCallOpen(true);
+    }
+    setIncomingCall(null);
+  };
+
+  const handleDeclineCall = () => {
+    setIncomingCall(null);
+  };
 
   return (
     <div className="flex-1 flex flex-col h-full bg-background">
@@ -66,6 +98,16 @@ const ChatArea = ({ conversation, messages, onSendMessage }: ChatAreaProps) => {
         onClose={() => setIsVideoCallOpen(false)}
         contactName={conversation.name}
         contactAvatar={conversation.avatar}
+      />
+
+      {/* Incoming Call Notification */}
+      <IncomingCallNotification
+        isOpen={!!incomingCall}
+        callType={incomingCall?.type || "voice"}
+        callerName={incomingCall?.callerName || ""}
+        callerAvatar={incomingCall?.callerAvatar}
+        onAccept={handleAcceptCall}
+        onDecline={handleDeclineCall}
       />
     </div>
   );
