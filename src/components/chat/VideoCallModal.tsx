@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { PhoneOff, Mic, MicOff, Video, VideoOff, Maximize2, Minimize2 } from "lucide-react";
+import { PhoneOff, Mic, MicOff, Video, VideoOff, Maximize2, Minimize2, Monitor, MonitorOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface VideoCallModalProps {
@@ -13,10 +13,12 @@ const VideoCallModal = ({ isOpen, onClose, contactName, contactAvatar }: VideoCa
   const [callStatus, setCallStatus] = useState<"connecting" | "ringing" | "connected" | "ended">("connecting");
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -25,6 +27,7 @@ const VideoCallModal = ({ isOpen, onClose, contactName, contactAvatar }: VideoCa
     setCallDuration(0);
     setIsMuted(false);
     setIsVideoOff(false);
+    setIsScreenSharing(false);
 
     const connectTimer = setTimeout(() => setCallStatus("ringing"), 1000);
     const ringTimer = setTimeout(() => setCallStatus("connected"), 3000);
@@ -70,6 +73,9 @@ const VideoCallModal = ({ isOpen, onClose, contactName, contactAvatar }: VideoCa
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
     };
   }, [isOpen]);
 
@@ -95,8 +101,52 @@ const VideoCallModal = ({ isOpen, onClose, contactName, contactAvatar }: VideoCa
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const handleToggleScreenShare = async () => {
+    if (isScreenSharing) {
+      // Stop screen sharing
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach((track) => track.stop());
+        screenStreamRef.current = null;
+      }
+      // Restore camera video
+      if (localVideoRef.current && streamRef.current) {
+        localVideoRef.current.srcObject = streamRef.current;
+      }
+      setIsScreenSharing(false);
+    } else {
+      // Start screen sharing
+      try {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false,
+        });
+        screenStreamRef.current = screenStream;
+        
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = screenStream;
+        }
+        
+        // Handle when user stops sharing via browser UI
+        screenStream.getVideoTracks()[0].onended = () => {
+          if (localVideoRef.current && streamRef.current) {
+            localVideoRef.current.srcObject = streamRef.current;
+          }
+          screenStreamRef.current = null;
+          setIsScreenSharing(false);
+        };
+        
+        setIsScreenSharing(true);
+      } catch (err) {
+        console.error("Error sharing screen:", err);
+      }
+    }
+  };
+
   const handleEndCall = () => {
     setCallStatus("ended");
+    if (screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach((track) => track.stop());
+    }
     setTimeout(onClose, 500);
   };
 
@@ -202,6 +252,18 @@ const VideoCallModal = ({ isOpen, onClose, contactName, contactAvatar }: VideoCa
           )}
         >
           {isVideoOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
+        </button>
+
+        <button
+          onClick={handleToggleScreenShare}
+          className={cn(
+            "p-4 rounded-full transition-all",
+            isScreenSharing
+              ? "bg-primary text-primary-foreground"
+              : "bg-secondary/80 text-foreground hover:bg-secondary"
+          )}
+        >
+          {isScreenSharing ? <MonitorOff className="w-6 h-6" /> : <Monitor className="w-6 h-6" />}
         </button>
 
         <button
