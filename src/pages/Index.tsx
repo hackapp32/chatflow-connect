@@ -117,10 +117,11 @@ const Index = () => {
     // Convert attachments to message attachments
     const messageAttachments: MessageAttachment[] = attachments.map((a) => ({
       id: a.id,
-      name: a.file.name,
-      size: a.file.size,
+      name: a.name || a.file?.name || a.type,
+      size: a.file?.size,
       type: a.type,
-      url: a.preview || URL.createObjectURL(a.file),
+      url: a.preview || (a.file ? URL.createObjectURL(a.file) : undefined),
+      location: a.location,
     }));
 
     const newMessage: Message = {

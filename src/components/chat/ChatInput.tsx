@@ -1,11 +1,19 @@
 import { useState, useRef } from "react";
-import { Paperclip, Smile, Send, X, Image, FileText } from "lucide-react";
+import { Paperclip, Smile, Send, X, Image, FileText, MapPin, Folder, AppWindow, File, Plus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export interface Attachment {
   id: string;
-  file: File;
+  file?: File;
   preview?: string;
-  type: "image" | "file";
+  type: "image" | "file" | "document" | "location" | "folder" | "app";
+  name?: string;
+  location?: { lat: number; lng: number; address: string };
 }
 
 interface ChatInputProps {
@@ -15,7 +23,11 @@ interface ChatInputProps {
 const ChatInput = ({ onSend }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +45,7 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, attachmentType: Attachment["type"]) => {
     const files = Array.from(e.target.files || []);
     
     const newAttachments: Attachment[] = files.map((file) => {
@@ -42,16 +54,50 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
         id: `${Date.now()}-${Math.random()}`,
         file,
         preview: isImage ? URL.createObjectURL(file) : undefined,
-        type: isImage ? "image" : "file",
+        type: attachmentType === "image" ? "image" : (isImage ? "image" : attachmentType),
+        name: file.name,
       };
     });
 
     setAttachments((prev) => [...prev, ...newAttachments]);
     
     // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    e.target.value = "";
+  };
+
+  const handleLocationShare = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const newAttachment: Attachment = {
+            id: `${Date.now()}-${Math.random()}`,
+            type: "location",
+            location: {
+              lat: latitude,
+              lng: longitude,
+              address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+            },
+          };
+          setAttachments((prev) => [...prev, newAttachment]);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          alert("Unable to get your location. Please check your browser permissions.");
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by your browser.");
     }
+  };
+
+  const handleAppShare = () => {
+    const newAttachment: Attachment = {
+      id: `${Date.now()}-${Math.random()}`,
+      type: "app",
+      name: "Shared App",
+    };
+    setAttachments((prev) => [...prev, newAttachment]);
   };
 
   const removeAttachment = (id: string) => {
@@ -70,17 +116,65 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const getAttachmentIcon = (type: Attachment["type"]) => {
+    switch (type) {
+      case "image":
+        return <Image className="w-5 h-5 text-primary" />;
+      case "document":
+        return <FileText className="w-5 h-5 text-orange-500" />;
+      case "location":
+        return <MapPin className="w-5 h-5 text-red-500" />;
+      case "folder":
+        return <Folder className="w-5 h-5 text-yellow-500" />;
+      case "app":
+        return <AppWindow className="w-5 h-5 text-purple-500" />;
+      default:
+        return <File className="w-5 h-5 text-primary" />;
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="p-4 border-t border-border bg-card/50">
+      {/* Hidden File Inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        onChange={(e) => handleFileSelect(e, "file")}
+        className="hidden"
+      />
+      <input
+        ref={imageInputRef}
+        type="file"
+        multiple
+        accept="image/*,video/*"
+        onChange={(e) => handleFileSelect(e, "image")}
+        className="hidden"
+      />
+      <input
+        ref={documentInputRef}
+        type="file"
+        multiple
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf"
+        onChange={(e) => handleFileSelect(e, "document")}
+        className="hidden"
+      />
+      <input
+        ref={folderInputRef}
+        type="file"
+        multiple
+        // @ts-ignore - webkitdirectory is not in types
+        webkitdirectory=""
+        onChange={(e) => handleFileSelect(e, "folder")}
+        className="hidden"
+      />
+
       {/* Attachments Preview */}
       {attachments.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-3 p-3 bg-secondary/50 rounded-lg">
           {attachments.map((attachment) => (
-            <div
-              key={attachment.id}
-              className="relative group"
-            >
-              {attachment.type === "image" ? (
+            <div key={attachment.id} className="relative group">
+              {attachment.type === "image" && attachment.preview ? (
                 <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted">
                   <img
                     src={attachment.preview}
@@ -88,12 +182,28 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
                     className="w-full h-full object-cover"
                   />
                 </div>
+              ) : attachment.type === "location" ? (
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+                  <MapPin className="w-5 h-5 text-red-500" />
+                  <div className="max-w-[120px]">
+                    <p className="text-xs text-foreground">Location</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {attachment.location?.address}
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
-                  <FileText className="w-5 h-5 text-primary" />
+                  {getAttachmentIcon(attachment.type)}
                   <div className="max-w-[120px]">
-                    <p className="text-xs text-foreground truncate">{attachment.file.name}</p>
-                    <p className="text-xs text-muted-foreground">{formatFileSize(attachment.file.size)}</p>
+                    <p className="text-xs text-foreground truncate">
+                      {attachment.name || attachment.file?.name || attachment.type}
+                    </p>
+                    {attachment.file && (
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(attachment.file.size)}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -110,23 +220,45 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
       )}
 
       <div className="flex items-end gap-3">
-        {/* Action Buttons */}
+        {/* Attachment Menu */}
         <div className="flex gap-1">
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept="image/*,.pdf,.doc,.docx,.txt,.zip"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
-          >
-            <Paperclip className="w-5 h-5" />
-          </button>
+          <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem onClick={() => documentInputRef.current?.click()}>
+                <FileText className="w-4 h-4 mr-2 text-orange-500" />
+                Document
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => imageInputRef.current?.click()}>
+                <Image className="w-4 h-4 mr-2 text-blue-500" />
+                Photos & Videos
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLocationShare}>
+                <MapPin className="w-4 h-4 mr-2 text-red-500" />
+                Location
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                <File className="w-4 h-4 mr-2 text-primary" />
+                File
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => folderInputRef.current?.click()}>
+                <Folder className="w-4 h-4 mr-2 text-yellow-500" />
+                Folder
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleAppShare}>
+                <AppWindow className="w-4 h-4 mr-2 text-purple-500" />
+                App
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           <button
             type="button"
             className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
