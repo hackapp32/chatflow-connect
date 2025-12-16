@@ -1,19 +1,27 @@
-import { useState, useRef } from "react";
-import { Paperclip, Smile, Send, X, Image, FileText, MapPin, Folder, AppWindow, File, Plus } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Smile, Send, X, Image, FileText, MapPin, Folder, AppWindow, File, Plus, Mic, Square } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 
 export interface Attachment {
   id: string;
   file?: File;
   preview?: string;
-  type: "image" | "file" | "document" | "location" | "folder" | "app";
+  type: "image" | "file" | "document" | "location" | "folder" | "app" | "voice";
   name?: string;
   location?: { lat: number; lng: number; address: string };
+  duration?: number;
 }
 
 interface ChatInputProps {
@@ -24,10 +32,25 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,8 +83,6 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
     });
 
     setAttachments((prev) => [...prev, ...newAttachments]);
-    
-    // Reset input
     e.target.value = "";
   };
 
@@ -100,6 +121,61 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
     setAttachments((prev) => [...prev, newAttachment]);
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        
+        const newAttachment: Attachment = {
+          id: `${Date.now()}-${Math.random()}`,
+          file: audioBlob as unknown as File,
+          type: "voice",
+          name: `voice-${Date.now()}.webm`,
+          duration: recordingDuration,
+          preview: URL.createObjectURL(audioBlob),
+        };
+        
+        setAttachments((prev) => [...prev, newAttachment]);
+        setRecordingDuration(0);
+        
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+    } catch (error) {
+      console.error("Error starting recording:", error);
+      alert("Unable to access microphone. Please check your browser permissions.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
+    }
+  };
+
   const removeAttachment = (id: string) => {
     setAttachments((prev) => {
       const attachment = prev.find((a) => a.id === id);
@@ -116,6 +192,17 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handleEmojiSelect = (emoji: { native: string }) => {
+    setMessage((prev) => prev + emoji.native);
+    setIsEmojiPickerOpen(false);
+  };
+
   const getAttachmentIcon = (type: Attachment["type"]) => {
     switch (type) {
       case "image":
@@ -128,6 +215,8 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
         return <Folder className="w-5 h-5 text-yellow-500" />;
       case "app":
         return <AppWindow className="w-5 h-5 text-purple-500" />;
+      case "voice":
+        return <Mic className="w-5 h-5 text-green-500" />;
       default:
         return <File className="w-5 h-5 text-primary" />;
     }
@@ -192,6 +281,16 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
                     </p>
                   </div>
                 </div>
+              ) : attachment.type === "voice" ? (
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+                  <Mic className="w-5 h-5 text-green-500" />
+                  <div className="max-w-[120px]">
+                    <p className="text-xs text-foreground">Voice message</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDuration(attachment.duration || 0)}
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
                   {getAttachmentIcon(attachment.type)}
@@ -216,6 +315,21 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Recording Indicator */}
+      {isRecording && (
+        <div className="flex items-center gap-3 mb-3 p-3 bg-destructive/10 rounded-lg">
+          <div className="w-3 h-3 bg-destructive rounded-full animate-pulse" />
+          <span className="text-sm text-foreground">Recording... {formatDuration(recordingDuration)}</span>
+          <button
+            type="button"
+            onClick={stopRecording}
+            className="ml-auto p-2 bg-destructive rounded-full text-destructive-foreground hover:bg-destructive/90"
+          >
+            <Square className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -259,11 +373,38 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
             </DropdownMenuContent>
           </DropdownMenu>
           
+          {/* Emoji Picker */}
+          <Popover open={isEmojiPickerOpen} onOpenChange={setIsEmojiPickerOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <Smile className="w-5 h-5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 border-none" align="start">
+              <Picker
+                data={data}
+                onEmojiSelect={handleEmojiSelect}
+                theme="auto"
+                previewPosition="none"
+                skinTonePosition="none"
+              />
+            </PopoverContent>
+          </Popover>
+
+          {/* Voice Recording Button */}
           <button
             type="button"
-            className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+            onClick={isRecording ? stopRecording : startRecording}
+            className={`p-2.5 rounded-full transition-colors ${
+              isRecording 
+                ? "bg-destructive text-destructive-foreground" 
+                : "hover:bg-secondary text-muted-foreground hover:text-foreground"
+            }`}
           >
-            <Smile className="w-5 h-5" />
+            {isRecording ? <Square className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
           </button>
         </div>
 
