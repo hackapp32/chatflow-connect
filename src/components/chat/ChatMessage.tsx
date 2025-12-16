@@ -1,12 +1,13 @@
 import { cn } from "@/lib/utils";
-import { Check, CheckCheck, FileText, Download } from "lucide-react";
+import { Check, CheckCheck, FileText, Download, MapPin, Folder, AppWindow, File } from "lucide-react";
 
 export interface MessageAttachment {
   id: string;
   name: string;
-  size: number;
-  type: "image" | "file";
-  url: string;
+  size?: number;
+  type: "image" | "file" | "document" | "location" | "folder" | "app";
+  url?: string;
+  location?: { lat: number; lng: number; address: string };
 }
 
 export interface Message {
@@ -83,14 +84,59 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
               </div>
             )}
 
-            {/* Files */}
+            {/* Files & Documents */}
             {message.attachments!
-              .filter((a) => a.type === "file")
+              .filter((a) => a.type === "file" || a.type === "document" || a.type === "folder" || a.type === "app")
+              .map((attachment) => {
+                const getIcon = () => {
+                  switch (attachment.type) {
+                    case "document": return <FileText className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-orange-500")} />;
+                    case "folder": return <Folder className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-yellow-500")} />;
+                    case "app": return <AppWindow className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-purple-500")} />;
+                    default: return <File className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-primary")} />;
+                  }
+                };
+                
+                return (
+                  <a
+                    key={attachment.id}
+                    href={attachment.url || "#"}
+                    download={attachment.name}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-2xl transition-colors",
+                      isMe
+                        ? "bg-chat-sent/80 hover:bg-chat-sent text-primary-foreground"
+                        : "bg-chat-received hover:bg-chat-received/80 text-foreground"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-10 h-10 rounded-lg flex items-center justify-center",
+                      isMe ? "bg-primary-foreground/20" : "bg-primary/20"
+                    )}>
+                      {getIcon()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{attachment.name}</p>
+                      {attachment.size && (
+                        <p className={cn("text-xs", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                          {formatFileSize(attachment.size)}
+                        </p>
+                      )}
+                    </div>
+                    <Download className={cn("w-4 h-4", isMe ? "text-primary-foreground/70" : "text-muted-foreground")} />
+                  </a>
+                );
+              })}
+
+            {/* Location */}
+            {message.attachments!
+              .filter((a) => a.type === "location")
               .map((attachment) => (
                 <a
                   key={attachment.id}
-                  href={attachment.url}
-                  download={attachment.name}
+                  href={`https://maps.google.com/?q=${attachment.location?.lat},${attachment.location?.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-2xl transition-colors",
                     isMe
@@ -100,17 +146,16 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
                 >
                   <div className={cn(
                     "w-10 h-10 rounded-lg flex items-center justify-center",
-                    isMe ? "bg-primary-foreground/20" : "bg-primary/20"
+                    isMe ? "bg-primary-foreground/20" : "bg-red-500/20"
                   )}>
-                    <FileText className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-primary")} />
+                    <MapPin className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-red-500")} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{attachment.name}</p>
-                    <p className={cn("text-xs", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
-                      {formatFileSize(attachment.size)}
+                    <p className="text-sm font-medium">Location</p>
+                    <p className={cn("text-xs truncate", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                      {attachment.location?.address || "Shared location"}
                     </p>
                   </div>
-                  <Download className={cn("w-4 h-4", isMe ? "text-primary-foreground/70" : "text-muted-foreground")} />
                 </a>
               ))}
           </div>
