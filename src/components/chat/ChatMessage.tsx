@@ -1,13 +1,15 @@
 import { cn } from "@/lib/utils";
-import { Check, CheckCheck, FileText, Download, MapPin, Folder, AppWindow, File } from "lucide-react";
+import { Check, CheckCheck, FileText, Download, MapPin, Folder, AppWindow, File, Mic, Play, Pause } from "lucide-react";
+import { useState, useRef } from "react";
 
 export interface MessageAttachment {
   id: string;
   name: string;
   size?: number;
-  type: "image" | "file" | "document" | "location" | "folder" | "app";
+  type: "image" | "file" | "document" | "location" | "folder" | "app" | "voice";
   url?: string;
   location?: { lat: number; lng: number; address: string };
+  duration?: number;
 }
 
 export interface Message {
@@ -27,11 +29,37 @@ interface ChatMessageProps {
 
 const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessageProps) => {
   const isMe = message.sender === "me";
+  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const toggleAudioPlayback = (attachmentId: string, url?: string) => {
+    if (playingAudioId === attachmentId) {
+      audioRef.current?.pause();
+      setPlayingAudioId(null);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      if (url) {
+        const audio = new Audio(url);
+        audioRef.current = audio;
+        audio.onended = () => setPlayingAudioId(null);
+        audio.play();
+        setPlayingAudioId(attachmentId);
+      }
+    }
   };
 
   const hasAttachments = message.attachments && message.attachments.length > 0;
@@ -157,6 +185,43 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
                     </p>
                   </div>
                 </a>
+              ))}
+
+            {/* Voice Messages */}
+            {message.attachments!
+              .filter((a) => a.type === "voice")
+              .map((attachment) => (
+                <button
+                  key={attachment.id}
+                  onClick={() => toggleAudioPlayback(attachment.id, attachment.url)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-2xl transition-colors",
+                    isMe
+                      ? "bg-chat-sent/80 hover:bg-chat-sent text-primary-foreground"
+                      : "bg-chat-received hover:bg-chat-received/80 text-foreground"
+                  )}
+                >
+                  <div className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center",
+                    isMe ? "bg-primary-foreground/20" : "bg-green-500/20"
+                  )}>
+                    {playingAudioId === attachment.id ? (
+                      <Pause className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-green-500")} />
+                    ) : (
+                      <Play className={cn("w-5 h-5 ml-0.5", isMe ? "text-primary-foreground" : "text-green-500")} />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1 bg-current/20 rounded-full overflow-hidden">
+                        <div className="h-full w-1/3 bg-current rounded-full" />
+                      </div>
+                    </div>
+                    <p className={cn("text-xs mt-1", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                      {formatDuration(attachment.duration || 0)}
+                    </p>
+                  </div>
+                </button>
               ))}
           </div>
         )}
