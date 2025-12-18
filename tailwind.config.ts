@@ -14,7 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Outfit', 'sans-serif'],
+        sans: ['Rajdhani', 'sans-serif'],
+        cyber: ['Orbitron', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -57,6 +58,12 @@ export default {
           active: "hsl(var(--chat-active))",
         },
         online: "hsl(var(--online))",
+        neon: {
+          pink: "hsl(var(--neon-pink))",
+          cyan: "hsl(var(--neon-cyan))",
+          purple: "hsl(var(--neon-purple))",
+          yellow: "hsl(var(--neon-yellow))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -76,11 +83,26 @@ export default {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.6" },
         },
+        "glow": {
+          "0%, 100%": { 
+            boxShadow: "0 0 5px hsl(var(--neon-pink) / 0.5), 0 0 10px hsl(var(--neon-pink) / 0.3)" 
+          },
+          "50%": { 
+            boxShadow: "0 0 15px hsl(var(--neon-pink) / 0.8), 0 0 25px hsl(var(--neon-pink) / 0.5)" 
+          },
+        },
+        "flicker": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.8" },
+          "75%": { opacity: "0.9" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
+        "glow": "glow 2s ease-in-out infinite",
+        "flicker": "flicker 3s ease-in-out infinite",
       },
     },
   },

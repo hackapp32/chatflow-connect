@@ -1,4 +1,4 @@
-import { Phone, Video, MoreVertical } from "lucide-react";
+import { Phone, Video, MoreVertical, Shield } from "lucide-react";
 
 interface ChatHeaderProps {
   name: string;
@@ -10,50 +10,59 @@ interface ChatHeaderProps {
 
 const ChatHeader = ({ name, avatar, online, onVoiceCall, onVideoCall }: ChatHeaderProps) => {
   return (
-    <header className="px-6 py-4 border-b border-border bg-card/50 flex items-center justify-between">
-      <div className="flex items-center gap-3">
+    <header className="px-6 py-4 border-b border-border/50 glass-cyber flex items-center justify-between relative overflow-hidden">
+      {/* Scanline effect */}
+      <div className="absolute inset-0 cyber-scanline pointer-events-none" />
+      
+      <div className="flex items-center gap-3 relative z-10">
         {/* Avatar */}
         <div className="relative">
-          <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-medium">
+          <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-secondary/30 to-accent/20 flex items-center justify-center text-foreground font-cyber font-bold border border-secondary/50">
             {avatar ? (
-              <img src={avatar} alt={name} className="w-full h-full rounded-full object-cover" />
+              <img src={avatar} alt={name} className="w-full h-full rounded-lg object-cover" />
             ) : (
-              name.charAt(0).toUpperCase()
+              <span className="neon-text-cyan">{name.charAt(0).toUpperCase()}</span>
             )}
           </div>
           {online && (
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-online rounded-full border-2 border-card" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-online rounded-full border-2 border-card animate-pulse" />
           )}
         </div>
 
         {/* Info */}
         <div>
-          <h2 className="font-semibold text-foreground">{name}</h2>
-          <p className="text-xs text-muted-foreground">
+          <h2 className="font-cyber font-bold text-foreground tracking-wide">{name}</h2>
+          <p className="text-xs text-muted-foreground font-mono">
             {online ? (
-              <span className="text-online">Online</span>
+              <span className="text-online flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-online rounded-full animate-pulse" />
+                CONNECTED
+              </span>
             ) : (
-              "Last seen recently"
+              "OFFLINE"
             )}
           </p>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 relative z-10">
         <button 
           onClick={onVoiceCall}
-          className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+          className="p-2.5 rounded-lg hover:bg-secondary/50 transition-all text-muted-foreground hover:text-secondary hover:neon-border-cyan"
         >
           <Phone className="w-5 h-5" />
         </button>
         <button 
           onClick={onVideoCall}
-          className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+          className="p-2.5 rounded-lg hover:bg-secondary/50 transition-all text-muted-foreground hover:text-secondary hover:neon-border-cyan"
         >
           <Video className="w-5 h-5" />
         </button>
-        <button className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+        <button className="p-2.5 rounded-lg hover:bg-secondary/50 transition-all text-muted-foreground hover:text-secondary hover:neon-border-cyan">
+          <Shield className="w-5 h-5" />
+        </button>
+        <button className="p-2.5 rounded-lg hover:bg-secondary/50 transition-all text-muted-foreground hover:text-secondary hover:neon-border-cyan">
           <MoreVertical className="w-5 h-5" />
         </button>
       </div>
