@@ -74,8 +74,8 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
     >
       {/* Avatar */}
       {showAvatar && !isMe && (
-        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-foreground text-sm font-medium flex-shrink-0 mt-auto">
-          {senderName?.charAt(0).toUpperCase() || "?"}
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-secondary/50 to-accent/30 flex items-center justify-center text-foreground text-sm font-cyber font-bold flex-shrink-0 mt-auto border border-secondary/50">
+          <span className="neon-text-cyan">{senderName?.charAt(0).toUpperCase() || "?"}</span>
         </div>
       )}
 
@@ -87,7 +87,8 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
             {/* Images Grid */}
             {message.attachments!.filter((a) => a.type === "image").length > 0 && (
               <div className={cn(
-                "grid gap-1 rounded-2xl overflow-hidden",
+                "grid gap-1 rounded-lg overflow-hidden border",
+                isMe ? "border-primary/30" : "border-secondary/30",
                 message.attachments!.filter((a) => a.type === "image").length === 1 
                   ? "grid-cols-1" 
                   : "grid-cols-2"
@@ -105,7 +106,7 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
                       <img
                         src={attachment.url}
                         alt={attachment.name}
-                        className="max-w-[280px] max-h-[280px] object-cover rounded-lg hover:opacity-90 transition-opacity"
+                        className="max-w-[280px] max-h-[280px] object-cover hover:opacity-90 transition-opacity"
                       />
                     </a>
                   ))}
@@ -118,9 +119,9 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
               .map((attachment) => {
                 const getIcon = () => {
                   switch (attachment.type) {
-                    case "document": return <FileText className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-orange-500")} />;
-                    case "folder": return <Folder className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-yellow-500")} />;
-                    case "app": return <AppWindow className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-purple-500")} />;
+                    case "document": return <FileText className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-neon-yellow")} />;
+                    case "folder": return <Folder className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-neon-cyan")} />;
+                    case "app": return <AppWindow className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-neon-purple")} />;
                     default: return <File className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-primary")} />;
                   }
                 };
@@ -131,22 +132,22 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
                     href={attachment.url || "#"}
                     download={attachment.name}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-2xl transition-colors",
+                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-all border",
                       isMe
-                        ? "bg-chat-sent/80 hover:bg-chat-sent text-primary-foreground"
-                        : "bg-chat-received hover:bg-chat-received/80 text-foreground"
+                        ? "bg-gradient-to-r from-primary/90 to-primary/70 border-primary/50 text-primary-foreground hover:neon-border"
+                        : "bg-chat-received/80 border-border/50 text-foreground hover:border-secondary/50"
                     )}
                   >
                     <div className={cn(
                       "w-10 h-10 rounded-lg flex items-center justify-center",
-                      isMe ? "bg-primary-foreground/20" : "bg-primary/20"
+                      isMe ? "bg-primary-foreground/20" : "bg-secondary/30"
                     )}>
                       {getIcon()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{attachment.name}</p>
+                      <p className="text-sm font-semibold truncate">{attachment.name}</p>
                       {attachment.size && (
-                        <p className={cn("text-xs", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                        <p className={cn("text-xs font-mono", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
                           {formatFileSize(attachment.size)}
                         </p>
                       )}
@@ -166,21 +167,21 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
                   target="_blank"
                   rel="noopener noreferrer"
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-2xl transition-colors",
+                    "flex items-center gap-3 px-4 py-3 rounded-lg transition-all border",
                     isMe
-                      ? "bg-chat-sent/80 hover:bg-chat-sent text-primary-foreground"
-                      : "bg-chat-received hover:bg-chat-received/80 text-foreground"
+                      ? "bg-gradient-to-r from-primary/90 to-primary/70 border-primary/50 text-primary-foreground hover:neon-border"
+                      : "bg-chat-received/80 border-border/50 text-foreground hover:border-destructive/50"
                   )}
                 >
                   <div className={cn(
                     "w-10 h-10 rounded-lg flex items-center justify-center",
-                    isMe ? "bg-primary-foreground/20" : "bg-red-500/20"
+                    isMe ? "bg-primary-foreground/20" : "bg-destructive/20"
                   )}>
-                    <MapPin className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-red-500")} />
+                    <MapPin className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-destructive")} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">Location</p>
-                    <p className={cn("text-xs truncate", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                    <p className="text-sm font-semibold">Location</p>
+                    <p className={cn("text-xs truncate font-mono", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
                       {attachment.location?.address || "Shared location"}
                     </p>
                   </div>
@@ -195,20 +196,20 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
                   key={attachment.id}
                   onClick={() => toggleAudioPlayback(attachment.id, attachment.url)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-2xl transition-colors",
+                    "flex items-center gap-3 px-4 py-3 rounded-lg transition-all border",
                     isMe
-                      ? "bg-chat-sent/80 hover:bg-chat-sent text-primary-foreground"
-                      : "bg-chat-received hover:bg-chat-received/80 text-foreground"
+                      ? "bg-gradient-to-r from-primary/90 to-primary/70 border-primary/50 text-primary-foreground hover:neon-border"
+                      : "bg-chat-received/80 border-border/50 text-foreground hover:border-online/50"
                   )}
                 >
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center",
-                    isMe ? "bg-primary-foreground/20" : "bg-green-500/20"
+                    isMe ? "bg-primary-foreground/20" : "bg-online/20"
                   )}>
                     {playingAudioId === attachment.id ? (
-                      <Pause className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-green-500")} />
+                      <Pause className={cn("w-5 h-5", isMe ? "text-primary-foreground" : "text-online")} />
                     ) : (
-                      <Play className={cn("w-5 h-5 ml-0.5", isMe ? "text-primary-foreground" : "text-green-500")} />
+                      <Play className={cn("w-5 h-5 ml-0.5", isMe ? "text-primary-foreground" : "text-online")} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -217,7 +218,7 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
                         <div className="h-full w-1/3 bg-current rounded-full" />
                       </div>
                     </div>
-                    <p className={cn("text-xs mt-1", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                    <p className={cn("text-xs mt-1 font-mono", isMe ? "text-primary-foreground/70" : "text-muted-foreground")}>
                       {formatDuration(attachment.duration || 0)}
                     </p>
                   </div>
@@ -230,10 +231,10 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
         {hasContent && (
           <div
             className={cn(
-              "px-4 py-2.5 rounded-2xl",
+              "px-4 py-3 rounded-lg border transition-all",
               isMe
-                ? "bg-chat-sent text-primary-foreground rounded-br-md"
-                : "bg-chat-received text-foreground rounded-bl-md"
+                ? "bg-gradient-to-r from-primary/90 to-primary/70 text-primary-foreground border-primary/50 rounded-br-sm neon-border"
+                : "bg-chat-received/80 text-foreground border-border/50 rounded-bl-sm"
             )}
           >
             <p className="text-sm leading-relaxed break-words">{message.content}</p>
@@ -247,12 +248,12 @@ const ChatMessage = ({ message, showAvatar = false, senderName }: ChatMessagePro
             isMe ? "justify-end" : "justify-start"
           )}
         >
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground font-mono">
             {message.timestamp}
           </span>
           {isMe && (
             message.read ? (
-              <CheckCheck className="w-3.5 h-3.5 text-primary" />
+              <CheckCheck className="w-3.5 h-3.5 text-secondary" />
             ) : (
               <Check className="w-3.5 h-3.5 text-muted-foreground" />
             )

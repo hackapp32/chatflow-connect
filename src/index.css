@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,42 +6,48 @@
 
 @layer base {
   :root {
-    --background: 220 20% 7%;
-    --foreground: 210 40% 98%;
+    --background: 240 15% 3%;
+    --foreground: 180 100% 90%;
 
-    --card: 220 18% 10%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 20% 6%;
+    --card-foreground: 180 100% 90%;
 
-    --popover: 220 18% 12%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 20% 8%;
+    --popover-foreground: 180 100% 90%;
 
-    --primary: 174 72% 56%;
-    --primary-foreground: 220 20% 7%;
+    --primary: 320 100% 60%;
+    --primary-foreground: 240 15% 3%;
 
-    --secondary: 220 16% 14%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 180 100% 50%;
+    --secondary-foreground: 240 15% 3%;
 
-    --muted: 220 14% 18%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 240 15% 15%;
+    --muted-foreground: 180 50% 60%;
 
-    --accent: 174 72% 56%;
-    --accent-foreground: 220 20% 7%;
+    --accent: 280 100% 65%;
+    --accent-foreground: 240 15% 3%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 180 100% 90%;
 
-    --border: 220 14% 18%;
-    --input: 220 14% 22%;
-    --ring: 174 72% 56%;
+    --border: 280 50% 30%;
+    --input: 240 20% 12%;
+    --ring: 320 100% 60%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Chat-specific tokens */
-    --chat-bubble-sent: 174 72% 56%;
-    --chat-bubble-received: 220 16% 16%;
-    --chat-sidebar: 220 18% 9%;
-    --chat-active: 220 16% 14%;
-    --online: 142 76% 46%;
+    /* Cyberpunk Chat tokens */
+    --chat-bubble-sent: 320 100% 60%;
+    --chat-bubble-received: 240 20% 12%;
+    --chat-sidebar: 240 20% 4%;
+    --chat-active: 280 50% 20%;
+    --online: 120 100% 50%;
+    
+    /* Neon glow effects */
+    --neon-pink: 320 100% 60%;
+    --neon-cyan: 180 100% 50%;
+    --neon-purple: 280 100% 65%;
+    --neon-yellow: 60 100% 50%;
   }
 }
 
@@ -51,14 +57,66 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Outfit', sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Rajdhani', sans-serif;
+    background-image: 
+      radial-gradient(ellipse at 20% 80%, hsl(320 100% 60% / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, hsl(180 100% 50% / 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, hsl(280 100% 65% / 0.04) 0%, transparent 70%);
+    background-attachment: fixed;
   }
 }
 
 @layer utilities {
+  .font-cyber {
+    font-family: 'Orbitron', sans-serif;
+  }
+
   .glass {
-    @apply bg-card/80 backdrop-blur-xl;
+    @apply bg-card/60 backdrop-blur-xl border border-border/50;
+  }
+
+  .glass-cyber {
+    @apply bg-card/40 backdrop-blur-2xl;
+    border: 1px solid hsl(var(--neon-pink) / 0.3);
+    box-shadow: 
+      0 0 20px hsl(var(--neon-pink) / 0.1),
+      inset 0 0 20px hsl(var(--neon-cyan) / 0.05);
+  }
+
+  .neon-text {
+    text-shadow: 
+      0 0 5px hsl(var(--neon-pink)),
+      0 0 10px hsl(var(--neon-pink)),
+      0 0 20px hsl(var(--neon-pink) / 0.5);
+  }
+
+  .neon-text-cyan {
+    text-shadow: 
+      0 0 5px hsl(var(--neon-cyan)),
+      0 0 10px hsl(var(--neon-cyan)),
+      0 0 20px hsl(var(--neon-cyan) / 0.5);
+  }
+
+  .neon-border {
+    box-shadow: 
+      0 0 5px hsl(var(--neon-pink) / 0.5),
+      0 0 10px hsl(var(--neon-pink) / 0.3),
+      inset 0 0 5px hsl(var(--neon-pink) / 0.1);
+  }
+
+  .neon-border-cyan {
+    box-shadow: 
+      0 0 5px hsl(var(--neon-cyan) / 0.5),
+      0 0 10px hsl(var(--neon-cyan) / 0.3),
+      inset 0 0 5px hsl(var(--neon-cyan) / 0.1);
+  }
+
+  .cyber-grid {
+    background-image: 
+      linear-gradient(hsl(var(--neon-cyan) / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--neon-cyan) / 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
   }
 
   .message-enter {
@@ -68,21 +126,39 @@
   @keyframes message-slide-in {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(10px) scale(0.98);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateY(0) scale(1);
     }
+  }
+
+  @keyframes pulse-neon {
+    0%, 100% {
+      box-shadow: 0 0 5px hsl(var(--neon-pink) / 0.5), 0 0 10px hsl(var(--neon-pink) / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 10px hsl(var(--neon-pink) / 0.8), 0 0 20px hsl(var(--neon-pink) / 0.5);
+    }
+  }
+
+  @keyframes scan-line {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+
+  .animate-pulse-neon {
+    animation: pulse-neon 2s ease-in-out infinite;
   }
 
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted)) transparent;
+    scrollbar-color: hsl(var(--neon-pink) / 0.5) transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
@@ -90,7 +166,19 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--muted));
-    border-radius: 3px;
+    background: linear-gradient(180deg, hsl(var(--neon-pink)), hsl(var(--neon-purple)));
+    border-radius: 2px;
+  }
+
+  .cyber-scanline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, hsl(var(--neon-cyan) / 0.3), transparent);
+    animation: scan-line 8s linear infinite;
+    pointer-events: none;
   }
 }

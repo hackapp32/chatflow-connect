@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Smile, Send, X, Image, FileText, MapPin, Folder, AppWindow, File, Plus, Mic, Square } from "lucide-react";
+import { Smile, Send, X, Image, FileText, MapPin, Folder, AppWindow, File, Plus, Mic, Square, Zap } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -208,22 +208,22 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
       case "image":
         return <Image className="w-5 h-5 text-primary" />;
       case "document":
-        return <FileText className="w-5 h-5 text-orange-500" />;
+        return <FileText className="w-5 h-5 text-neon-yellow" />;
       case "location":
-        return <MapPin className="w-5 h-5 text-red-500" />;
+        return <MapPin className="w-5 h-5 text-destructive" />;
       case "folder":
-        return <Folder className="w-5 h-5 text-yellow-500" />;
+        return <Folder className="w-5 h-5 text-neon-cyan" />;
       case "app":
-        return <AppWindow className="w-5 h-5 text-purple-500" />;
+        return <AppWindow className="w-5 h-5 text-neon-purple" />;
       case "voice":
-        return <Mic className="w-5 h-5 text-green-500" />;
+        return <Mic className="w-5 h-5 text-online" />;
       default:
         return <File className="w-5 h-5 text-primary" />;
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border-t border-border bg-card/50">
+    <form onSubmit={handleSubmit} className="p-4 border-t border-border/50 glass-cyber">
       {/* Hidden File Inputs */}
       <input
         ref={fileInputRef}
@@ -260,11 +260,11 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
 
       {/* Attachments Preview */}
       {attachments.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-3 p-3 bg-secondary/50 rounded-lg">
+        <div className="flex flex-wrap gap-2 mb-3 p-3 bg-muted/30 rounded-lg border border-border/30">
           {attachments.map((attachment) => (
             <div key={attachment.id} className="relative group">
               {attachment.type === "image" && attachment.preview ? (
-                <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted">
+                <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted border border-primary/30">
                   <img
                     src={attachment.preview}
                     alt="Preview"
@@ -272,34 +272,34 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
                   />
                 </div>
               ) : attachment.type === "location" ? (
-                <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
-                  <MapPin className="w-5 h-5 text-red-500" />
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-destructive/30">
+                  <MapPin className="w-5 h-5 text-destructive" />
                   <div className="max-w-[120px]">
-                    <p className="text-xs text-foreground">Location</p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-xs text-foreground font-semibold">Location</p>
+                    <p className="text-xs text-muted-foreground truncate font-mono">
                       {attachment.location?.address}
                     </p>
                   </div>
                 </div>
               ) : attachment.type === "voice" ? (
-                <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
-                  <Mic className="w-5 h-5 text-green-500" />
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-online/30">
+                  <Mic className="w-5 h-5 text-online" />
                   <div className="max-w-[120px]">
-                    <p className="text-xs text-foreground">Voice message</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-foreground font-semibold">Voice message</p>
+                    <p className="text-xs text-muted-foreground font-mono">
                       {formatDuration(attachment.duration || 0)}
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border border-border/30">
                   {getAttachmentIcon(attachment.type)}
                   <div className="max-w-[120px]">
-                    <p className="text-xs text-foreground truncate">
+                    <p className="text-xs text-foreground truncate font-semibold">
                       {attachment.name || attachment.file?.name || attachment.type}
                     </p>
                     {attachment.file && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground font-mono">
                         {formatFileSize(attachment.file.size)}
                       </p>
                     )}
@@ -320,13 +320,13 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
 
       {/* Recording Indicator */}
       {isRecording && (
-        <div className="flex items-center gap-3 mb-3 p-3 bg-destructive/10 rounded-lg">
+        <div className="flex items-center gap-3 mb-3 p-3 bg-destructive/10 rounded-lg border border-destructive/30">
           <div className="w-3 h-3 bg-destructive rounded-full animate-pulse" />
-          <span className="text-sm text-foreground">Recording... {formatDuration(recordingDuration)}</span>
+          <span className="text-sm text-foreground font-mono">REC... {formatDuration(recordingDuration)}</span>
           <button
             type="button"
             onClick={stopRecording}
-            className="ml-auto p-2 bg-destructive rounded-full text-destructive-foreground hover:bg-destructive/90"
+            className="ml-auto p-2 bg-destructive rounded-lg text-destructive-foreground hover:bg-destructive/90 transition-colors"
           >
             <Square className="w-4 h-4" />
           </button>
@@ -340,35 +340,35 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                className="p-2.5 rounded-lg hover:bg-secondary/50 transition-all text-muted-foreground hover:text-secondary hover:neon-border-cyan"
               >
                 <Plus className="w-5 h-5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuItem onClick={() => documentInputRef.current?.click()}>
-                <FileText className="w-4 h-4 mr-2 text-orange-500" />
-                Document
+            <DropdownMenuContent align="start" className="w-48 glass-cyber">
+              <DropdownMenuItem onClick={() => documentInputRef.current?.click()} className="hover:bg-neon-yellow/10">
+                <FileText className="w-4 h-4 mr-2 text-neon-yellow" />
+                <span className="font-semibold">Document</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => imageInputRef.current?.click()}>
-                <Image className="w-4 h-4 mr-2 text-blue-500" />
-                Photos & Videos
+              <DropdownMenuItem onClick={() => imageInputRef.current?.click()} className="hover:bg-secondary/20">
+                <Image className="w-4 h-4 mr-2 text-secondary" />
+                <span className="font-semibold">Photos & Videos</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLocationShare}>
-                <MapPin className="w-4 h-4 mr-2 text-red-500" />
-                Location
+              <DropdownMenuItem onClick={handleLocationShare} className="hover:bg-destructive/10">
+                <MapPin className="w-4 h-4 mr-2 text-destructive" />
+                <span className="font-semibold">Location</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+              <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="hover:bg-primary/10">
                 <File className="w-4 h-4 mr-2 text-primary" />
-                File
+                <span className="font-semibold">File</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => folderInputRef.current?.click()}>
-                <Folder className="w-4 h-4 mr-2 text-yellow-500" />
-                Folder
+              <DropdownMenuItem onClick={() => folderInputRef.current?.click()} className="hover:bg-neon-cyan/10">
+                <Folder className="w-4 h-4 mr-2 text-neon-cyan" />
+                <span className="font-semibold">Folder</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleAppShare}>
-                <AppWindow className="w-4 h-4 mr-2 text-purple-500" />
-                App
+              <DropdownMenuItem onClick={handleAppShare} className="hover:bg-neon-purple/10">
+                <AppWindow className="w-4 h-4 mr-2 text-neon-purple" />
+                <span className="font-semibold">App</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -378,7 +378,7 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="p-2.5 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                className="p-2.5 rounded-lg hover:bg-secondary/50 transition-all text-muted-foreground hover:text-neon-yellow"
               >
                 <Smile className="w-5 h-5" />
               </button>
@@ -387,7 +387,7 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
               <Picker
                 data={data}
                 onEmojiSelect={handleEmojiSelect}
-                theme="auto"
+                theme="dark"
                 previewPosition="none"
                 skinTonePosition="none"
               />
@@ -398,10 +398,10 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
           <button
             type="button"
             onClick={isRecording ? stopRecording : startRecording}
-            className={`p-2.5 rounded-full transition-colors ${
+            className={`p-2.5 rounded-lg transition-all ${
               isRecording 
-                ? "bg-destructive text-destructive-foreground" 
-                : "hover:bg-secondary text-muted-foreground hover:text-foreground"
+                ? "bg-destructive text-destructive-foreground animate-pulse" 
+                : "hover:bg-online/20 text-muted-foreground hover:text-online"
             }`}
           >
             {isRecording ? <Square className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
@@ -414,9 +414,9 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
+            placeholder="Enter transmission..."
             rows={1}
-            className="w-full bg-input rounded-2xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none transition-all text-sm"
+            className="w-full bg-input/80 border border-border/50 rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border resize-none transition-all text-sm"
             style={{ maxHeight: "120px" }}
           />
         </div>
@@ -425,9 +425,9 @@ const ChatInput = ({ onSend }: ChatInputProps) => {
         <button
           type="submit"
           disabled={!message.trim() && attachments.length === 0}
-          className="p-3 bg-primary rounded-full text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95"
+          className="p-3 bg-gradient-to-r from-primary to-accent rounded-lg text-primary-foreground hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 neon-border animate-glow"
         >
-          <Send className="w-5 h-5" />
+          <Zap className="w-5 h-5" />
         </button>
       </div>
     </form>

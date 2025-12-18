@@ -58,7 +58,10 @@ const ChatArea = ({ conversation, messages, onSendMessage }: ChatAreaProps) => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background">
+    <div className="flex-1 flex flex-col h-full bg-background relative overflow-hidden">
+      {/* Background grid */}
+      <div className="absolute inset-0 cyber-grid opacity-20 pointer-events-none" />
+      
       <ChatHeader
         name={conversation.name}
         avatar={conversation.avatar}
@@ -68,7 +71,7 @@ const ChatArea = ({ conversation, messages, onSendMessage }: ChatAreaProps) => {
       />
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto scrollbar-thin p-6 space-y-4 relative z-10">
         {messages.map((message, index) => (
           <ChatMessage
             key={message.id}
