@@ -1,4 +1,5 @@
-import { Phone, Video, MoreVertical, Shield } from "lucide-react";
+import { Phone, Video, MoreVertical, Shield, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ChatHeaderProps {
   name: string;
@@ -9,6 +10,14 @@ interface ChatHeaderProps {
 }
 
 const ChatHeader = ({ name, avatar, online, onVoiceCall, onVideoCall }: ChatHeaderProps) => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('app_user_id');
+    localStorage.removeItem('app_username');
+    navigate('/login');
+  };
+
   return (
     <header className="px-6 py-4 border-b border-border/50 glass-cyber flex items-center justify-between relative overflow-hidden">
       {/* Scanline effect */}
@@ -64,6 +73,13 @@ const ChatHeader = ({ name, avatar, online, onVoiceCall, onVideoCall }: ChatHead
         </button>
         <button className="p-2.5 rounded-lg hover:bg-secondary/50 transition-all text-muted-foreground hover:text-secondary hover:neon-border-cyan">
           <MoreVertical className="w-5 h-5" />
+        </button>
+        <button 
+          onClick={handleLogout}
+          className="p-2.5 rounded-lg hover:bg-destructive/50 transition-all text-muted-foreground hover:text-destructive"
+          title="Logout"
+        >
+          <LogOut className="w-5 h-5" />
         </button>
       </div>
     </header>
