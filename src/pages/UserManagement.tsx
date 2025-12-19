@@ -52,7 +52,7 @@ const UserManagement = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.rpc('add_app_user', {
+      const { error } = await supabase.rpc('add_app_user' as any, {
         p_username: username.trim(),
         p_password: password
       });
